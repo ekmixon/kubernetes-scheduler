@@ -48,9 +48,8 @@ def get_request_time(hostname):
     end = 0
     sampling = 60
     metricdata = sdclient.get_data(metrics, start, end, sampling, filter=hostfilter)
-    request_time = float(metricdata[1].get('data')[0].get('d')[0])
-    print hostname + " (" + sysdig_metric + "): " + str(request_time)
-    return request_time
+    hostfilter = "host.hostName = '%s'" % hostname
+    return float(metricdata[1].get('data')[0].get('d')[0])
 
 
 def best_request_time(nodes):
@@ -65,9 +64,12 @@ def best_request_time(nodes):
 def nodes_available():
     ready_nodes = []
     for n in v1.list_node().items:
-            for status in n.status.conditions:
-                if status.status == "True" and status.type == "Ready":
-                    ready_nodes.append(n.metadata.name)
+        ready_nodes.extend(
+            n.metadata.name
+            for status in n.status.conditions
+            if status.status == "True" and status.type == "Ready"
+        )
+
     return ready_nodes
 
 
